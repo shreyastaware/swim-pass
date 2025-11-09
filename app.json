@@ -1,15 +1,24 @@
 {
 	"expo": {
-    "name": "Create mobile app",
+		"name": "Swim Pass",
+		"slug": "swim-pass",
 		"version": "1.0.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "automatic",
 		"newArchEnabled": true,
+		"splash": {
+			"image": "./assets/images/splash-icon.png",
+			"resizeMode": "contain",
+			"backgroundColor": "#ffffff"
+		},
 		"ios": {
 			"supportsTablet": true,
+			"bundleIdentifier": "com.swimpass.app",
 			"infoPlist": {
-				"ITSAppUsesNonExemptEncryption": false
+				"ITSAppUsesNonExemptEncryption": false,
+				"NSCameraUsageDescription": "This app needs camera access to take visitor photos.",
+				"NSPhotoLibraryUsageDescription": "This app needs photo library access to select visitor photos."
 			}
 		},
 		"android": {
@@ -18,10 +27,13 @@
 				"backgroundColor": "#ffffff"
 			},
 			"permissions": [
-				"android.permission.RECORD_AUDIO",
-				"android.permission.MODIFY_AUDIO_SETTINGS"
+				"android.permission.CAMERA",
+				"android.permission.READ_EXTERNAL_STORAGE",
+				"android.permission.WRITE_EXTERNAL_STORAGE",
+				"android.permission.INTERNET"
 			],
-			"package": "xyz.create.CreateExpoEnvironment"
+			"package": "com.swimpass.app",
+			"versionCode": 1
 		},
 		"plugins": [
 			[
