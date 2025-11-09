@@ -1,27 +1,33 @@
 # Swim Pass App - Setup Guide
 
-## Google Sheets API Integration Setup
+## Google Sheets & Google Drive API Integration Setup
 
-This guide will help you set up the Google Sheets API integration for your Swim Pass visitor management app.
+This guide will help you set up Google Sheets and Google Drive integration for your Swim Pass visitor management app.
 
 ---
 
-## 1. Set Up Google Cloud Project & Get API Key
+## 1. Set Up Google Cloud Project
 
 ### Step 1: Create a Google Cloud Project
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click **"Select a project"** → **"New Project"**
 3. Name it (e.g., "Swim Pass App") and click **"Create"**
+4. Wait for the project to be created and select it
 
-### Step 2: Enable Google Sheets API
+### Step 2: Enable Required APIs
 1. In your project, go to **"APIs & Services"** → **"Library"**
-2. Search for **"Google Sheets API"**
-3. Click on it and press **"Enable"**
+2. Search for and enable the following APIs:
+   - **Google Sheets API** - Click "Enable"
+   - **Google Drive API** - Click "Enable"
 
-### Step 3: Create API Key
+---
+
+## 2. Create API Key for Google Sheets
+
+### Step 1: Create API Key
 1. Go to **"APIs & Services"** → **"Credentials"**
 2. Click **"Create Credentials"** → **"API Key"**
-3. Copy the API key (you'll need this for `.env` file)
+3. Copy the API key (save it for later)
 4. **(Important)** Click **"Edit API Key"** to restrict it:
    - Under "API restrictions", select **"Restrict key"**
    - Check **"Google Sheets API"** only
@@ -29,7 +35,35 @@ This guide will help you set up the Google Sheets API integration for your Swim 
 
 ---
 
-## 2. Create Your Google Spreadsheet
+## 3. Create Service Account for Google Drive
+
+### Step 1: Create Service Account
+1. Go to **"APIs & Services"** → **"Credentials"**
+2. Click **"Create Credentials"** → **"Service Account"**
+3. Enter a name (e.g., "Swim Pass Service Account")
+4. Click **"Create and Continue"**
+5. Skip the optional steps and click **"Done"**
+
+### Step 2: Create Service Account Key
+1. Find your newly created service account in the list
+2. Click on it to open details
+3. Go to the **"Keys"** tab
+4. Click **"Add Key"** → **"Create new key"**
+5. Select **"JSON"** format
+6. Click **"Create"** - a JSON file will be downloaded
+7. **IMPORTANT:** Keep this file secure! It contains private credentials
+
+### Step 3: Get Service Account Email
+1. Open the downloaded JSON file
+2. Find the `"client_email"` field - it looks like:
+   ```
+   your-service-account@your-project.iam.gserviceaccount.com
+   ```
+3. Copy this email address - you'll need it for Drive folder sharing
+
+---
+
+## 4. Create Your Google Spreadsheet
 
 ### Step 1: Create a New Spreadsheet
 1. Go to [Google Sheets](https://sheets.google.com/)
@@ -53,25 +87,36 @@ Copy the ID between `/d/` and `/edit`
 
 ---
 
-## 3. Set Up Uploadcare (Image Uploads)
+## 5. Set Up Google Drive Folder (Optional but Recommended)
 
-### Option 1: Use Uploadcare (Recommended)
-1. Go to [Uploadcare](https://uploadcare.com/)
-2. Sign up for a free account
-3. Go to **Dashboard** → **API Keys**
-4. Copy your **Public Key**
+### Step 1: Create a Drive Folder
+1. Go to [Google Drive](https://drive.google.com/)
+2. Create a new folder (e.g., "Swim Pass Photos")
+3. Right-click the folder → **"Get link"**
+4. Copy the folder ID from the URL:
+   ```
+   https://drive.google.com/drive/folders/FOLDER_ID_HERE
+   ```
 
-### Option 2: Skip Image Uploads (Testing)
-If you want to test without images, you can use a placeholder:
-```
-EXPO_PUBLIC_UPLOADCARE_PUBLIC_KEY=placeholder
-```
+### Step 2: Share Folder with Service Account
+1. Right-click the folder → **"Share"**
+2. Paste your service account email (from Step 3.3 above)
+3. Give it **"Editor"** permission
+4. Uncheck **"Notify people"**
+5. Click **"Share"**
+
+**Why?** This allows your service account to upload images to this specific folder.
 
 ---
 
-## 4. Configure Environment Variables
+## 6. Configure Environment Variables
 
-### Edit the `.env` file in the root directory:
+### Step 1: Prepare Service Account JSON
+1. Open the downloaded JSON key file
+2. Copy the ENTIRE contents (it should be one long line of JSON)
+3. You can use an online JSON minifier to make it a single line if needed
+
+### Step 2: Edit the `.env` file in the root directory:
 
 ```bash
 # REQUIRED: Your Google Sheets API Key
@@ -80,13 +125,21 @@ EXPO_PUBLIC_GOOGLE_SHEETS_API_KEY=AIzaSy...your_api_key_here
 # REQUIRED: Your Google Spreadsheet ID
 EXPO_PUBLIC_GOOGLE_SPREADSHEET_ID=1a2b3c4d5e6f7g8h9i0j...your_spreadsheet_id
 
-# REQUIRED: Your Uploadcare Public Key
-EXPO_PUBLIC_UPLOADCARE_PUBLIC_KEY=your_uploadcare_public_key
+# REQUIRED: Your Service Account JSON (entire JSON as one line)
+EXPO_PUBLIC_GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",...}
+
+# OPTIONAL: Your Google Drive Folder ID
+EXPO_PUBLIC_GOOGLE_DRIVE_FOLDER_ID=1a2b3c4d5e6f7g8h9i0j...your_folder_id
 ```
+
+### Important Notes:
+- The service account JSON must be on ONE line
+- Keep the JSON format intact (with all quotes and braces)
+- Never commit this file to Git (.gitignore already protects it)
 
 ---
 
-## 5. Test the Integration
+## 7. Test the Integration
 
 ### Start the development server:
 ```bash
@@ -98,11 +151,13 @@ npm start
 2. Take a photo
 3. Submit the form
 4. Check your Google Spreadsheet - the entry should appear!
+5. Check your Google Drive folder - the photo should be uploaded!
 
 ### Test the admin dashboard:
 1. Navigate to **Admin Login** (you may need to add a button or manually navigate to `/admin-login`)
 2. Enter password: **`admin123`**
 3. View all visitor entries fetched from Google Sheets
+4. Photos should be displayed from Google Drive URLs
 
 ---
 
@@ -114,15 +169,45 @@ npm start
 - ✅ Ensure spreadsheet is shared publicly (anyone with link)
 - ✅ Check spreadsheet ID is correct
 
-### Error: "Upload failed"
-- ✅ Verify Uploadcare public key is correct
-- ✅ Check internet connection
-- ✅ Try creating a new Uploadcare account
+### Error: "Failed to upload image to Google Drive"
+- ✅ Verify Google Drive API is enabled
+- ✅ Check service account JSON is valid and properly formatted
+- ✅ Ensure service account has access to the Drive folder (shared as Editor)
+- ✅ Check folder ID is correct (if using a specific folder)
+- ✅ Make sure the JSON is on ONE line in the .env file
 
 ### Images not uploading
-- The app uses Uploadcare for image storage
-- Only the image URL is saved to Google Sheets, not the actual image
-- Make sure `EXPO_PUBLIC_UPLOADCARE_PUBLIC_KEY` is set
+- ✅ Verify `EXPO_PUBLIC_GOOGLE_SERVICE_ACCOUNT_KEY` is set correctly
+- ✅ Check the service account has "Editor" permission on the Drive folder
+- ✅ Ensure the private key in the JSON is not corrupted
+- ✅ Check browser console/terminal for detailed error messages
+
+### JSON formatting issues
+- The service account JSON must be valid JSON on one line
+- Use an online JSON validator to check if it's valid
+- Make sure to escape special characters if needed
+- Example valid format:
+  ```
+  EXPO_PUBLIC_GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"test"}
+  ```
+
+---
+
+## How It Works
+
+### Image Upload Flow:
+1. User takes a photo with the camera
+2. Photo is stored locally on the device
+3. On submit, the photo is converted to base64
+4. Base64 is sent to `/api/upload-image` endpoint
+5. Server uploads the image to Google Drive using Service Account
+6. Google Drive returns a public URL
+7. The URL is saved to Google Sheets (not the actual image)
+
+### Data Storage:
+- **Google Sheets:** Stores visitor information (name, mobile, address, etc.) + photo URL
+- **Google Drive:** Stores the actual photo files
+- **Admin Dashboard:** Fetches data from Google Sheets and displays photos from Drive URLs
 
 ---
 
@@ -131,7 +216,7 @@ npm start
 ### Visitor Flow (No Login):
 1. **Visitor Entry Form** (`/visitor-entry`) - Fill name, mobile, address, etc.
 2. **Photo Capture** (`/photo-capture`) - Take visitor photo
-3. **Review & Submit** (`/review-submit`) - Review and submit to Google Sheets
+3. **Review & Submit** (`/review-submit`) - Upload to Drive & save to Sheets
 
 ### Admin Flow (Password Protected):
 1. **Admin Login** (`/admin-login`) - Password: `admin123`
@@ -143,9 +228,10 @@ npm start
 
 ⚠️ **Important for Production:**
 1. The admin password is currently hardcoded as `admin123`
-2. Consider implementing proper authentication before deploying
-3. Store sensitive credentials securely
-4. Consider using Service Account authentication for Google Sheets (more secure than API key)
+2. Service account credentials are sensitive - never commit to Git
+3. Consider implementing proper authentication before deploying
+4. Restrict API keys to specific HTTP referrers in production
+5. Use environment-specific credentials for dev/staging/prod
 
 ---
 
@@ -157,7 +243,19 @@ After setting up the integration:
 - ✅ Configure EAS Build for Play Store deployment
 - ✅ Change admin password to something secure
 - ✅ Test thoroughly before deploying
+- ✅ Consider adding image compression for faster uploads
+- ✅ Set up proper error logging and monitoring
 
 ---
 
-Need help? Check the [Expo documentation](https://docs.expo.dev/) or [Google Sheets API docs](https://developers.google.com/sheets/api/guides/concepts).
+## Helpful Resources
+
+- [Google Cloud Console](https://console.cloud.google.com/)
+- [Google Sheets API Documentation](https://developers.google.com/sheets/api)
+- [Google Drive API Documentation](https://developers.google.com/drive/api)
+- [Expo Documentation](https://docs.expo.dev/)
+- [Service Account Authentication](https://cloud.google.com/iam/docs/service-accounts)
+
+---
+
+Need help? Check the error logs in the console or reach out with specific error messages!
