@@ -1,4 +1,5 @@
 .env
+.expo/
 caches/
 node_modules/
 
