@@ -18,13 +18,13 @@ import {
 import { ArrowLeft, Send } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAppTheme } from "@/utils/theme";
-import { useUpload } from "@/utils/useUpload";
+import { useUploadToDrive } from "@/utils/useUploadToDrive";
 
 export default function ReviewSubmitScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useAppTheme();
   const params = useLocalSearchParams();
-  const [upload] = useUpload();
+  const [upload] = useUploadToDrive();
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -350,7 +350,7 @@ export default function ReviewSubmitScreen() {
                   color: isDark ? "#000000" : "#FFFFFF",
                 }}
               >
-                Saving to Google Sheets...
+                Uploading to Google Drive...
               </Text>
             </>
           ) : (
