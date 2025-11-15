@@ -1,5 +1,6 @@
-import { uploadImageToDrive } from '@/utils/googleDrive';
+// import { uploadImageToDrive } from '@/utils/googleDrive';
 import { Readable } from 'stream';
+import { uploadImage } from '../../utils/uploadImage';
 
 /**
  * API Route to upload images to Google Drive
@@ -73,7 +74,7 @@ export async function POST(request) {
     console.log('[upload-image] Uploading to Google Drive...');
 
     // Upload to Google Drive
-    const result = await uploadImageToDrive({
+    const result = await uploadImage({
       name: fileName,
       mimeType: mimeType,
       stream: stream,

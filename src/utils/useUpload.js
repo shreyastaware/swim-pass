@@ -16,7 +16,7 @@ function useUpload() {
           const formData = new FormData();
           formData.append("file", asset.file);
 
-          response = await fetch("/_create/api/upload/", {
+          response = await fetch("/api/upload-image", {
             method: "POST",
             body: formData,
           });
